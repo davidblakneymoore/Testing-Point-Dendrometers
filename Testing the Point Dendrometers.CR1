@@ -1,0 +1,120 @@
+
+' Testing the Point Dendrometers
+
+' David Moore
+' University of New Hampshire Echydrology Lab
+' January 2022
+
+
+' The Explanation
+
+' It's good to test the point dendrometers every once in a
+' while to make sure they all give a constant output over
+' time when their plungers are held at a constant length.
+
+' Use the plexiglass device to depress all the plungers a
+' certain amount. This device holds all the plungers at a
+' constant length.
+
+' If you need to test more than 16 dendrometers, you must
+' use a multiplexer.
+
+' This script can be used in conjunction with the 'Testing
+' the Point Dendrometers' R script.
+
+
+' The Materials
+
+' One Campbell Scientific Measurement and Control Datalogger
+' (CR1000)
+
+' One Campbell Scientific 16- or 32-Channel Relay Multiplexer
+' (AM16/32B) (a multiplexer is only needed if you are testing
+' more than 16 point dendrometers at once)
+
+' ZN12-T-2WP dendrometers
+
+
+' The Wiring
+
+' If you are not using a multiplexer, connect all the white
+' dendrometer wires to the single-ended ports ('SE 1' through
+' 'SE 16') on the datalogger. If you are using a multiplexer,
+' connect all the white dendrometer wires to the single-ended
+' ports on the multiplexer.
+
+' Connect all the black dendrometer wires to the 'G' ports on
+' the datalogger.
+
+' Connect all the red dendrometer wires to the '5V' port on
+' the datalogger. Each dendrometer draws about 5 mA of
+' current, and the datalogger's '5V' port can supply up to
+' about 200 mA of current, so current will not be limiting.
+
+' To test more than 16 dendrometers, wire the multiplexer to
+' the datalogger as described below. The multiplexer must be
+' in single-ended ('4X16') mode.
+' RES --> C1
+' CLK --> C2
+' G --> G
+' 12V --> 12V
+' COM ODD H --> SE 1
+' COM ODD L --> SE 2
+' COM ground --> SE ground
+' COM EVEN H --> SE 3
+' COM EVEN L --> SE 4
+
+
+' The Program
+
+' User-Defined Constants
+Const Time_Between_Measurements = 5 ' Units: s
+Const Number_of_Point_Dendrometers = 16
+Const Multiplexer_Present = False
+
+' Public Variables
+Public Battery_Voltage : Units Battery_Voltage = V
+Public Panel_Temperature : Units Panel_Temperature = ° C
+Public Point_Dendrometer_Reading(Number_of_Point_Dendrometers) : Units Point_Dendrometer_Reading() = mV
+Public Diameter(Number_of_Point_Dendrometers) : Units Diameter() = µm
+
+' Private Variables
+Dim i
+
+' Data Tables
+DataTable (Point_Dendrometers, True, -1)
+	DataInterval (0, Time_Between_Measurements, Sec, 10)
+	Minimum (1, Battery_Voltage, IEEE4, False, False)
+	Sample (1, Panel_Temperature, IEEE4)
+	Sample (Number_of_Point_Dendrometers, Point_Dendrometer_Reading(), IEEE4)
+	Sample (Number_of_Point_Dendrometers, Diameter(), IEEE4)
+EndTable
+
+' The Main Program
+BeginProg
+	Scan (1, Sec, 0, 0)
+	  If (IfTime (0, Time_Between_Measurements, Sec)) Then
+	    PanelTemp (Panel_Temperature, _60Hz)
+	    Battery (Battery_Voltage)
+	    If (Multiplexer_Present = False) Then
+	      VoltSe (Point_Dendrometer_Reading(), Number_of_Point_Dendrometers, mv5000, 1, True, 0, _60Hz, 1.0, 0)
+	    EndIf
+	    If (Multiplexer_Present = True) Then
+	      PortSet (1, 1)
+	      Delay (0, 100, mSec)
+	      i = 1
+	      SubScan (0, uSec, Ceiling (Number_of_Point_Dendrometers / 4))
+	        VoltSe (Point_Dendrometer_Reading(), 4, mv5000, 1, True, 0, _60Hz, 1.0, 0)
+	        PulsePort (2, 10)
+	        i += 4
+	      NextSubScan
+	      PortSet (1, 0)
+	    EndIf
+	    For i = 1 To Number_of_Point_Dendrometers
+	      Diameter(i) = Point_Dendrometer_Reading(i) * 4
+	    Next i
+	  EndIf
+		CallTable Point_Dendrometers
+	NextScan
+EndProg
+
