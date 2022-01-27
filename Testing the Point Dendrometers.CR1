@@ -1,4 +1,3 @@
-
 ' Testing the Point Dendrometers
 
 ' David Moore
@@ -76,7 +75,6 @@ Const Multiplexer_Present = False
 Public Battery_Voltage : Units Battery_Voltage = V
 Public Panel_Temperature : Units Panel_Temperature = ° C
 Public Point_Dendrometer_Reading(Number_of_Point_Dendrometers) : Units Point_Dendrometer_Reading() = mV
-Public Diameter(Number_of_Point_Dendrometers) : Units Diameter() = µm
 
 ' Private Variables
 Dim i
@@ -87,7 +85,6 @@ DataTable (Point_Dendrometers, True, -1)
 	Minimum (1, Battery_Voltage, IEEE4, False, False)
 	Sample (1, Panel_Temperature, IEEE4)
 	Sample (Number_of_Point_Dendrometers, Point_Dendrometer_Reading(), IEEE4)
-	Sample (Number_of_Point_Dendrometers, Diameter(), IEEE4)
 EndTable
 
 ' The Main Program
@@ -110,11 +107,7 @@ BeginProg
 	      NextSubScan
 	      PortSet (1, 0)
 	    EndIf
-	    For i = 1 To Number_of_Point_Dendrometers
-	      Diameter(i) = Point_Dendrometer_Reading(i) * 4
-	    Next i
 	  EndIf
 		CallTable Point_Dendrometers
 	NextScan
 EndProg
-
