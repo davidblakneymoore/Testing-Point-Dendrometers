@@ -102,7 +102,7 @@ BeginProg
 	      i = 1
 	      SubScan (0, uSec, Ceiling (Number_of_Point_Dendrometers / 4))
 	        VoltSe (Point_Dendrometer_Reading(), 4, mv5000, 1, True, 0, _60Hz, 1.0, 0)
-	        PulsePort (2, 10)
+	        PulsePort (2, 10000)
 	        i += 4
 	      NextSubScan
 	      PortSet (1, 0)
