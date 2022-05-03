@@ -2,7 +2,8 @@
 # Testing the Point Dendrometers
 
 # David Moore
-# January 21st, 2022
+# davidblakneymoore@gmail.com
+# January 2022
 
 
 # Explanation
